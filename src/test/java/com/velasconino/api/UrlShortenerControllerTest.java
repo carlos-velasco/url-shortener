@@ -1,4 +1,4 @@
-package com.velasconino;
+package com.velasconino.api;
 
 import io.micronaut.http.HttpRequest;
 import io.micronaut.http.HttpStatus;
@@ -6,9 +6,12 @@ import io.micronaut.http.client.HttpClient;
 import io.micronaut.http.client.annotation.Client;
 import io.micronaut.test.extensions.junit5.annotation.MicronautTest;
 import org.junit.jupiter.api.Test;
+
+import com.velasconino.api.dto.UrlRequestDto;
+import com.velasconino.api.dto.UrlResponseDto;
+
 import jakarta.inject.Inject;
-import com.velasconino.dto.UrlRequestDto;
-import com.velasconino.dto.UrlResponseDto;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import io.micronaut.http.client.DefaultHttpClientConfiguration;
 import org.junit.jupiter.api.BeforeEach;

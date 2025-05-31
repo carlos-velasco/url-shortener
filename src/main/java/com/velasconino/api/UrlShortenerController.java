@@ -1,4 +1,4 @@
-package com.velasconino;
+package com.velasconino.api;
 
 import io.micronaut.http.HttpResponse;
 import io.micronaut.http.annotation.Body;
@@ -7,9 +7,11 @@ import io.micronaut.http.annotation.Get;
 import io.micronaut.http.annotation.Post;
 import io.micronaut.http.annotation.PathVariable;
 import io.micronaut.http.MediaType;
-import com.velasconino.dto.UrlRequestDto;
-import com.velasconino.dto.UrlResponseDto;
+
 import java.util.UUID;
+
+import com.velasconino.api.dto.UrlRequestDto;
+import com.velasconino.api.dto.UrlResponseDto;
 
 @Controller("/")
 public class UrlShortenerController {

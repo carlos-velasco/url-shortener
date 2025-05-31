@@ -1,4 +1,4 @@
-package com.velasconino.dto;
+package com.velasconino.api.dto;
 
 import io.micronaut.serde.annotation.Serdeable;
 
