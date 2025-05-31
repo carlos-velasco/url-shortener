@@ -1,0 +1,9 @@
+micronaut:
+  server:
+    port: -1 # Random port for tests
+
+# Test configuration for URL Shortener
+url:
+  shortener:
+    initial-code-length: 8
+    base-url: https://test-shortener.com/ 

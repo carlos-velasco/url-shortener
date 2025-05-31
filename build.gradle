@@ -1,7 +1,7 @@
 plugins {
     id("io.micronaut.application") version "4.5.3"
-    id("com.gradleup.shadow") version "8.3.6"
     id("io.micronaut.aot") version "4.5.3"
+    id("com.gradleup.shadow") version "8.3.6"
 }
 
 version = "0.1"
@@ -15,11 +15,12 @@ dependencies {
     annotationProcessor("io.micronaut:micronaut-http-validation")
     annotationProcessor("io.micronaut.serde:micronaut-serde-processor")
     implementation("io.micronaut.serde:micronaut-serde-jackson")
-    compileOnly("io.micronaut:micronaut-http-client")
+    implementation("jakarta.annotation:jakarta.annotation-api")
     runtimeOnly("ch.qos.logback:logback-classic")
+    runtimeOnly("org.yaml:snakeyaml")
     testImplementation("io.micronaut:micronaut-http-client")
-    testImplementation("org.assertj:assertj-core:3.24.2")
-    testImplementation("io.rest-assured:rest-assured:5.4.0")
+    testImplementation("org.assertj:assertj-core:3.25.3")
+    testImplementation("org.junit.jupiter:junit-jupiter-params:5.11.0")
 }
 
 

@@ -1,0 +1,11 @@
+micronaut:
+  application:
+    name: url-shortener
+  server:
+    port: 8080
+
+# URL Shortener Configuration
+url:
+  shortener:
+    initial-code-length: 8
+    base-url: https://myshortener.com/ 
