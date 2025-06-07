@@ -1,7 +1,7 @@
 package com.velasconino.infrastructure.adapters.input.dto;
 
 import io.micronaut.serde.annotation.Serdeable;
-
+ 
 /**
  * Request DTO for URL shortening.
  */

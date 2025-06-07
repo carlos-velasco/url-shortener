@@ -1,7 +1,6 @@
 package com.velasconino.infrastructure.adapters.input;
 
-import com.velasconino.application.usecases.AlphanumericHashBasedShortenUrlUseCase;
-import com.velasconino.application.usecases.StandardResolveShortUrlUseCase;
+import com.velasconino.application.ports.output.UrlRepository;
 import com.velasconino.infrastructure.adapters.input.dto.UrlRequestDto;
 import com.velasconino.infrastructure.adapters.input.dto.UrlResponseDto;
 import com.velasconino.infrastructure.adapters.input.error.UrlShortenerExceptionHandler.ErrorResponse;
@@ -15,6 +14,7 @@ import io.micronaut.http.client.annotation.Client;
 import io.micronaut.http.client.DefaultHttpClientConfiguration;
 import io.micronaut.http.client.exceptions.HttpClientResponseException;
 import io.micronaut.test.extensions.junit5.annotation.MicronautTest;
+import io.micronaut.test.annotation.MockBean;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -25,31 +25,37 @@ import org.junit.jupiter.params.provider.EmptySource;
 import org.junit.jupiter.params.provider.NullSource;
 import org.junit.jupiter.params.provider.ValueSource;
 import jakarta.inject.Inject;
-import jakarta.inject.Singleton;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static com.velasconino.fixture.UrlFixture.aUniqueUrl;
+import static com.velasconino.fixture.ShortCodeFixture.aUniqueShortCode;
 
 @MicronautTest
 class UrlShortenerControllerTest {
 
-    @Value("${url.shortener.base-url}")
-    private String TEST_BASE_URL;
-    
     @Inject
     @Client("/")
     HttpClient client;
-
+    
     @Inject
     DefaultHttpClientConfiguration configuration;
     
     @Inject
-    InMemoryUrlRepository urlRepository;
+    UrlRepository urlRepository;
+    
+    @Value("${url.shortener.base-url}")
+    private String baseShortUrl;
+    
+    @MockBean(UrlRepository.class)
+    UrlRepository urlRepository() {
+        return new InMemoryUrlRepository();
+    }
 
     @BeforeEach
     void setUp() {
         configuration.setFollowRedirects(false);
-        urlRepository.clear(); // Clear repository before each test
+ 
     }
 
     @Nested
@@ -60,7 +66,7 @@ class UrlShortenerControllerTest {
         @DisplayName("Should create a short URL successfully")
         void testCreateShortUrl() {
             // Given
-            String originalUrl = "https://example.com/very/long/url";
+            String originalUrl = aUniqueUrl();
             var request = new UrlRequestDto(originalUrl);
 
             // When
@@ -70,7 +76,7 @@ class UrlShortenerControllerTest {
 
             // Then
             assertThat(response.status().getCode()).isEqualTo(HttpStatus.CREATED.getCode());
-            assertThat(response.body().shortUrl()).startsWith(TEST_BASE_URL);
+            assertThat(response.body().shortUrl()).startsWith(baseShortUrl);
             
             // Extract the short code from the URL
             String shortUrl = response.body().shortUrl();
@@ -79,21 +85,22 @@ class UrlShortenerControllerTest {
             // Verify the mapping exists in the repository
             assertThat(urlRepository.findOriginalUrlByShortCode(shortCode))
                 .isPresent()
-                .contains(originalUrl);
+                .hasValueSatisfying(url -> assertThat(url).isEqualTo(originalUrl));
         }
         
         @ParameterizedTest
         @NullSource
         @EmptySource
+        @ValueSource(strings = {"   "})
         @DisplayName("Should return 400 when URL is null or empty")
-        void testNullOrEmptyUrlReturnsBadRequest(String url) {
+        void testEmptyUrlReturnsBadRequest(String emptyUrl) {
             // Given
-            var request = new UrlRequestDto(url);
+            var request = new UrlRequestDto(emptyUrl);
             
             // When/Then
-            HttpClientResponseException exception = assertThrowsBadRequestWithErrorResponse(request, "URL cannot be null or empty");
+            HttpClientResponseException exception = assertThrowsBadRequestWithErrorResponse(
+                request, "URL cannot be null or empty");
             
-            // Additional verification
             assertThat(exception.getStatus().getCode()).isEqualTo(HttpStatus.BAD_REQUEST.getCode());
         }
         
@@ -111,9 +118,9 @@ class UrlShortenerControllerTest {
             var request = new UrlRequestDto(invalidUrl);
             
             // When/Then
-            HttpClientResponseException exception = assertThrowsBadRequestWithErrorResponse(request, "Invalid URL format");
+            HttpClientResponseException exception = assertThrowsBadRequestWithErrorResponse(
+                request, "Invalid URL format");
             
-            // Additional verification
             assertThat(exception.getStatus().getCode()).isEqualTo(HttpStatus.BAD_REQUEST.getCode());
         }
     }
@@ -126,8 +133,8 @@ class UrlShortenerControllerTest {
         @DisplayName("Should redirect to the original URL")
         void testRedirectToOriginal() {
             // Given - pre-populate the repository with a mapping
-            String shortCode = "abc12345";
-            String originalUrl = "https://example.com/target";
+            String shortCode = aUniqueShortCode();
+            String originalUrl = aUniqueUrl();
             urlRepository.save(shortCode, originalUrl);
 
             // When
@@ -143,7 +150,7 @@ class UrlShortenerControllerTest {
         @DisplayName("Should return 404 when short code doesn't exist")
         void testRedirectNotFound() {
             // Given - a short code that doesn't exist in the repository
-            String shortCode = "nonexistent";
+            String shortCode = aUniqueShortCode();
 
             // When/Then
             HttpClientResponseException exception = assertThrows(
@@ -203,33 +210,5 @@ class UrlShortenerControllerTest {
         assertThat(errorResponse.message()).contains(expectedErrorMessagePart);
         
         return exception;
-    }
-    
-    /**
-     * Configuration class for the test beans.
-     */
-    @Singleton
-    static class TestConfig {
-        
-        @Value("${url.shortener.code-length}")
-        private int initialCodeLength;
-        
-        @Value("${url.shortener.base-url}")
-        private String baseShortUrl;
-        
-        @Singleton
-        InMemoryUrlRepository urlRepository() {
-            return new InMemoryUrlRepository();
-        }
-        
-        @Singleton
-        AlphanumericHashBasedShortenUrlUseCase shortenUrlUseCase(InMemoryUrlRepository repository) {
-            return new AlphanumericHashBasedShortenUrlUseCase(repository, initialCodeLength, baseShortUrl);
-        }
-        
-        @Singleton
-        StandardResolveShortUrlUseCase resolveShortUrlUseCase(InMemoryUrlRepository repository) {
-            return new StandardResolveShortUrlUseCase(repository);
-        }
     }
 } 

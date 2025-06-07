@@ -1,9 +1,26 @@
 micronaut:
   server:
     port: -1 # Random port for tests
+  data:
+    jdbc:
+      default:
+        dialect: H2
 
-# Test configuration for URL Shortener
+datasources:
+  default:
+    url: jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE;MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE;CASE_INSENSITIVE_IDENTIFIERS=TRUE
+    username: sa
+    password: ""
+    driver-class-name: org.h2.Driver
+    db-type: h2
+ 
 url:
   shortener:
     initial-code-length: 8
     base-url: https://test-shortener.com/ 
+
+# Flyway configuration for database migrations in tests
+flyway:
+  datasources:
+    default:
+      enabled: true 

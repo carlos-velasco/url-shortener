@@ -1,0 +1,5 @@
+CREATE TABLE url_mapping (
+    short_code VARCHAR(32) PRIMARY KEY,
+    original_url TEXT NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+); 

@@ -10,12 +10,13 @@ import io.micronaut.http.client.annotation.Client;
 import io.micronaut.http.client.DefaultHttpClientConfiguration;
 import io.micronaut.test.extensions.junit5.annotation.MicronautTest;
 import io.micronaut.context.annotation.Value;
+import jakarta.inject.Inject;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import jakarta.inject.Inject;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static com.velasconino.fixture.UrlFixture.aUniqueUrl;
 
 /**
  * Integration test for the URL shortener application.
@@ -30,7 +31,7 @@ public class UrlShortenerIntegrationTest {
     
     @Inject
     DefaultHttpClientConfiguration configuration;
-    
+        
     @Value("${url.shortener.base-url}")
     private String baseShortUrl;
     
@@ -42,7 +43,7 @@ public class UrlShortenerIntegrationTest {
     @Test
     void testFullUrlShorteningFlow() {
         // Given
-        String originalUrl = "https://example.com/very/long/path/to/resource";
+        String originalUrl = aUniqueUrl();
         var request = new UrlRequestDto(originalUrl);
         
         // When - Create a short URL
@@ -71,8 +72,8 @@ public class UrlShortenerIntegrationTest {
     @Test
     void testMultipleUrlsAreIndependent() {
         // Given
-        String url1 = "https://example.com/first/resource";
-        String url2 = "https://example.com/second/resource";
+        String url1 = aUniqueUrl();
+        String url2 = aUniqueUrl();
         
         // When - Create two short URLs
         var response1 = client.toBlocking()

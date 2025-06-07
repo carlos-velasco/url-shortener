@@ -2,10 +2,28 @@ micronaut:
   application:
     name: url-shortener
   server:
-    port: 8080
+    port: ${SERVER_PORT}
+  data:
+    jdbc:
+      default:
+        dialect: POSTGRES
 
+datasources:
+  default:
+    url: ${DATABASE_URL}
+    username: ${DATABASE_USERNAME}
+    password: ${DATABASE_PASSWORD}
+    driver-class-name: org.postgresql.Driver
+    db-type: postgres
+ 
 # URL Shortener Configuration
 url:
   shortener:
     initial-code-length: 8
-    base-url: https://myshortener.com/ 
+    base-url: ${BASE_URL}
+
+# Flyway configuration for database migrations
+flyway:
+  datasources:
+    default:
+      enabled: true 
