@@ -4,6 +4,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
+import static com.velasconino.fixture.UrlFixture.aUniqueUrl;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
@@ -11,7 +12,7 @@ class HashBasedAlphanumericShortenerTest {
 
     @Test
     void shouldCreateHashBasedAlphanumericShortener() {
-        String url = "https://example.com/path";
+        String url = aUniqueUrl();
         HashBasedAlphanumericShortener shortener = new HashBasedAlphanumericShortener(url);
         
         assertThat(shortener.getUrl()).isEqualTo(url);
@@ -20,7 +21,7 @@ class HashBasedAlphanumericShortenerTest {
     @ParameterizedTest
     @ValueSource(ints = {1, 5, 8, 10})
     void shouldGenerateShortCodeWithRequestedLength(int length) {
-        HashBasedAlphanumericShortener shortener = new HashBasedAlphanumericShortener("https://example.com/path");
+        HashBasedAlphanumericShortener shortener = new HashBasedAlphanumericShortener(aUniqueUrl());
         
         String shortCode = shortener.generateShortCode(length);
         
@@ -30,7 +31,7 @@ class HashBasedAlphanumericShortenerTest {
     
     @Test
     void shouldThrowExceptionWhenLengthIsNegative() {
-        HashBasedAlphanumericShortener shortener = new HashBasedAlphanumericShortener("https://example.com/path");
+        HashBasedAlphanumericShortener shortener = new HashBasedAlphanumericShortener(aUniqueUrl());
         
         assertThatThrownBy(() -> shortener.generateShortCode(-1))
             .isInstanceOf(IllegalArgumentException.class)
@@ -39,8 +40,8 @@ class HashBasedAlphanumericShortenerTest {
     
     @Test
     void shouldGenerateDifferentCodesForDifferentUrls() {
-        HashBasedAlphanumericShortener url1 = new HashBasedAlphanumericShortener("https://example.com/path1");
-        HashBasedAlphanumericShortener url2 = new HashBasedAlphanumericShortener("https://example.com/path2");
+        HashBasedAlphanumericShortener url1 = new HashBasedAlphanumericShortener(aUniqueUrl());
+        HashBasedAlphanumericShortener url2 = new HashBasedAlphanumericShortener(aUniqueUrl());
         
         String code1 = url1.generateShortCode(8);
         String code2 = url2.generateShortCode(8);
@@ -50,8 +51,9 @@ class HashBasedAlphanumericShortenerTest {
     
     @Test
     void shouldGenerateSameCodeForSameUrl() {
-        HashBasedAlphanumericShortener url1 = new HashBasedAlphanumericShortener("https://example.com/path");
-        HashBasedAlphanumericShortener url2 = new HashBasedAlphanumericShortener("https://example.com/path");
+        String url = aUniqueUrl();
+        HashBasedAlphanumericShortener url1 = new HashBasedAlphanumericShortener(url);
+        HashBasedAlphanumericShortener url2 = new HashBasedAlphanumericShortener(url);
         
         String code1 = url1.generateShortCode(8);
         String code2 = url2.generateShortCode(8);

@@ -8,6 +8,7 @@ import com.velasconino.infrastructure.adapters.output.InMemoryUrlRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import static com.velasconino.fixture.UrlFixture.aUniqueUrl;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
@@ -28,7 +29,7 @@ class AlphanumericHashBasedShortenUrlUseCaseTest {
     @Test
     void shouldShortenUrlAndReturnResponse() {
         // Given
-        String originalUrl = "https://example.com/some/long/path";
+        String originalUrl = aUniqueUrl();
         ShortenUrlCommand command = new ShortenUrlCommand(originalUrl);
 
         // When
@@ -49,8 +50,8 @@ class AlphanumericHashBasedShortenUrlUseCaseTest {
     @Test
     void shouldGenerateUniqueShortCodesForDifferentUrls() {
         // Given
-        String url1 = "https://example.com/path1";
-        String url2 = "https://example.com/path2";
+        String url1 = aUniqueUrl();
+        String url2 = aUniqueUrl();
         
         // When
         UrlShortenedResponse response1 = useCase.shortenUrl(new ShortenUrlCommand(url1));
@@ -72,7 +73,7 @@ class AlphanumericHashBasedShortenUrlUseCaseTest {
     @Test
     void shouldReuseSameShortCodeWhenShorteningTheSameUrlTwice() {
         // Given
-        String url = "https://example.com/same/resource";
+        String url = aUniqueUrl();
         ShortenUrlCommand command = new ShortenUrlCommand(url);
         
         // When
@@ -92,8 +93,8 @@ class AlphanumericHashBasedShortenUrlUseCaseTest {
     @Test
     void shouldIncreaseLengthByOneWhenShortCodeCollisionOccurs() {
         // Given
-        String firstLongUrl = "https://example.com/first/resource";
-        String secondLongUrl = "https://example.com/second/resource";
+        String firstLongUrl = aUniqueUrl();
+        String secondLongUrl = aUniqueUrl();
         
         // First, create a short URL for the first long URL
         UrlShortenedResponse firstUrlResponse = useCase.shortenUrl(new ShortenUrlCommand(firstLongUrl));
