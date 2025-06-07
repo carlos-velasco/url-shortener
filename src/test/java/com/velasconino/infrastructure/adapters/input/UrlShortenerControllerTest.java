@@ -55,7 +55,6 @@ class UrlShortenerControllerTest {
     @BeforeEach
     void setUp() {
         configuration.setFollowRedirects(false);
- 
     }
 
     @Nested

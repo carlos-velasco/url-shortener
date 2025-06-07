@@ -5,7 +5,6 @@ import com.velasconino.application.ports.input.ShortenUrlCommand;
 import com.velasconino.application.ports.input.UrlShortenedResponse;
 import com.velasconino.domain.HashBasedAlphanumericShortener;
 import com.velasconino.infrastructure.adapters.output.InMemoryUrlRepository;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import static com.velasconino.fixture.UrlFixture.aUniqueUrl;
@@ -17,14 +16,9 @@ class AlphanumericHashBasedShortenUrlUseCaseTest {
     private static final int INITIAL_CODE_LENGTH = 8;
     private static final String BASE_SHORT_URL = "https://myshortener.com/";
     
-    private InMemoryUrlRepository urlRepository;
-    private AlphanumericHashBasedShortenUrlUseCase useCase;
+    private InMemoryUrlRepository urlRepository = new InMemoryUrlRepository();
+    private AlphanumericHashBasedShortenUrlUseCase useCase = new AlphanumericHashBasedShortenUrlUseCase(urlRepository, INITIAL_CODE_LENGTH, BASE_SHORT_URL);
 
-    @BeforeEach
-    void setUp() {
-        urlRepository = new InMemoryUrlRepository();
-        useCase = new AlphanumericHashBasedShortenUrlUseCase(urlRepository, INITIAL_CODE_LENGTH, BASE_SHORT_URL);
-    }
 
     @Test
     void shouldShortenUrlAndReturnResponse() {

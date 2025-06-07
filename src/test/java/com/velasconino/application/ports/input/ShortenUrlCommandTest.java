@@ -5,8 +5,10 @@ import com.velasconino.application.exceptions.InvalidUrlException;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.NullAndEmptySource;
 import org.junit.jupiter.params.provider.ValueSource;
 
+import static com.velasconino.fixture.UrlFixture.aUniqueUrl;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
@@ -15,7 +17,7 @@ class ShortenUrlCommandTest {
     @Test
     void shouldCreateCommandWithValidUrl() {
         // Given
-        String validUrl = "https://example.com/path";
+        String validUrl = aUniqueUrl();
         
         // When
         ShortenUrlCommand command = new ShortenUrlCommand(validUrl);
@@ -24,23 +26,11 @@ class ShortenUrlCommandTest {
         assertThat(command.url()).isEqualTo(validUrl);
     }
     
-    @Test
-    void shouldThrowEmptyUrlExceptionWhenUrlIsNull() {
-        assertThatThrownBy(() -> new ShortenUrlCommand(null))
-            .isInstanceOf(EmptyUrlException.class)
-            .hasMessageContaining("URL cannot be null or empty");
-    }
-    
-    @Test
-    void shouldThrowEmptyUrlExceptionWhenUrlIsEmpty() {
-        assertThatThrownBy(() -> new ShortenUrlCommand(""))
-            .isInstanceOf(EmptyUrlException.class)
-            .hasMessageContaining("URL cannot be null or empty");
-    }
-    
-    @Test
-    void shouldThrowEmptyUrlExceptionWhenUrlIsBlank() {
-        assertThatThrownBy(() -> new ShortenUrlCommand("   "))
+    @ParameterizedTest
+    @NullAndEmptySource
+    @ValueSource(strings = {" "})
+    void shouldThrowEmptyUrlExceptionWhenUrlIsInvalid(String invalidUrl) {
+        assertThatThrownBy(() -> new ShortenUrlCommand(invalidUrl))
             .isInstanceOf(EmptyUrlException.class)
             .hasMessageContaining("URL cannot be null or empty");
     }
