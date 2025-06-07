@@ -26,4 +26,8 @@ url:
 flyway:
   datasources:
     default:
-      enabled: true 
+      enabled: true      # Keep Flyway enabled for validation
+      migrate: false     # Don't run migrations automatically
+      validate-on-migrate: true  # Validate schema on startup
+      out-of-order: false        # Ensure migrations run in order
+      baseline-on-migrate: false # Don't automatically baseline
