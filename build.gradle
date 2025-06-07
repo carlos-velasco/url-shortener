@@ -27,6 +27,7 @@ dependencies {
     runtimeOnly("org.postgresql:postgresql")
     runtimeOnly("ch.qos.logback:logback-classic")
     runtimeOnly("org.yaml:snakeyaml")
+    runtimeOnly("org.flywaydb:flyway-database-postgresql")
     
     testImplementation("io.micronaut:micronaut-http-client")
     testImplementation("org.assertj:assertj-core:3.25.3")
