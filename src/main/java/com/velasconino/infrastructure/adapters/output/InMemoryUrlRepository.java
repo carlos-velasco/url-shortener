@@ -16,11 +16,6 @@ public class InMemoryUrlRepository implements UrlRepository {
     private final Map<String, String> urlMap = new ConcurrentHashMap<>();
     
     @Override
-    public boolean existsByShortCode(String shortCode) {
-        return urlMap.containsKey(shortCode);
-    }
-    
-    @Override
     public void save(String shortCode, String originalUrl) {
         urlMap.put(shortCode, originalUrl);
     }
