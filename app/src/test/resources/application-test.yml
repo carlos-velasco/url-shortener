@@ -17,6 +17,7 @@ datasources:
 url:
   shortener:
     initial-code-length: 8
+    max-code-length-increase: 2
     base-url: https://test-shortener.com/ 
 
 # Flyway configuration for database migrations in tests

@@ -13,6 +13,6 @@ public class UrlFixture {
      * @return A unique URL string
      */
     public static String aUniqueUrl() {
-        return "https://example.com/" + UUID.randomUUID().toString();
+        return "https://example.com/" + UUID.randomUUID();
     }
 } 

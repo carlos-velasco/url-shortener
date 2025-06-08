@@ -3,6 +3,7 @@ package com.velasconino.infrastructure.adapters.input.error;
 import com.velasconino.application.exceptions.EmptyUrlException;
 import com.velasconino.application.exceptions.InvalidShortCodeException;
 import com.velasconino.application.exceptions.InvalidUrlException;
+import com.velasconino.application.exceptions.UrlShorteningCollisionException;
 
 import io.micronaut.context.annotation.Requires;
 import io.micronaut.http.HttpRequest;
@@ -37,6 +38,12 @@ public class UrlShortenerExceptionHandler implements ExceptionHandler<RuntimeExc
         if (exception instanceof InvalidShortCodeException) {
             return HttpResponse.badRequest()
                     .body(new ErrorResponse(HttpStatus.BAD_REQUEST.getCode(), exception.getMessage()));
+        }
+        
+        if (exception instanceof UrlShorteningCollisionException) {
+            return HttpResponse.serverError()
+                    .body(new ErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR.getCode(), 
+                        "URL shortening collision occurred"));
         }
         
         // Default case for other runtime exceptions

@@ -2,6 +2,7 @@ package com.velasconino.application.usecases;
 
 import java.util.Optional;
 
+import com.velasconino.application.exceptions.UrlShorteningCollisionException;
 import com.velasconino.application.ports.input.ShortenUrlCommand;
 import com.velasconino.application.ports.input.ShortenUrlUseCase;
 import com.velasconino.application.ports.input.UrlShortenedResponse;
@@ -20,15 +21,18 @@ import jakarta.inject.Singleton;
 public class AlphanumericHashBasedShortenUrlUseCase implements ShortenUrlUseCase {
     
     private final int initialCodeLength;
+    private final int maxCodeLengthIncrease;
     private final String baseShortUrl;
     private final UrlRepository urlRepository;
     
     public AlphanumericHashBasedShortenUrlUseCase(
             UrlRepository urlRepository,
             @Value("${url.shortener.initial-code-length}") int initialCodeLength,
+            @Value("${url.shortener.max-code-length-increase:5}") int maxCodeLengthIncrease,
             @Value("${url.shortener.base-url}") String baseShortUrl) {
         this.urlRepository = urlRepository;
         this.initialCodeLength = initialCodeLength;
+        this.maxCodeLengthIncrease = maxCodeLengthIncrease;
         this.baseShortUrl = baseShortUrl;
     }
     
@@ -49,11 +53,13 @@ public class AlphanumericHashBasedShortenUrlUseCase implements ShortenUrlUseCase
      * @param shortener The shortener to use for code generation
      * @param url The URL to find or generate a code for
      * @return A short code for the URL
+     * @throws UrlShorteningCollisionException if a unique code cannot be generated within the maximum length increase
      */
     private String findOrGenerateUniqueShortCode(HashBasedAlphanumericShortener shortener, String url) {
         int codeLength = initialCodeLength;
+        int maxLength = initialCodeLength + maxCodeLengthIncrease;
         
-        while (true) {
+        while (codeLength <= maxLength) {
             String shortCode = shortener.generateShortCode(codeLength);
             Optional<String> existingUrl = urlRepository.findOriginalUrlByShortCode(shortCode);
             
@@ -71,5 +77,8 @@ public class AlphanumericHashBasedShortenUrlUseCase implements ShortenUrlUseCase
             // Code collision with different URL, try longer code
             codeLength++;
         }
+        
+        throw new UrlShorteningCollisionException(
+            "Could not generate a unique short code within the maximum allowed length increase");
     }
 } 

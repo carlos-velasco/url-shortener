@@ -1,11 +1,16 @@
 package com.velasconino.application.usecases;
 
 import com.velasconino.application.exceptions.InvalidUrlException;
+import com.velasconino.application.exceptions.UrlShorteningCollisionException;
 import com.velasconino.application.ports.input.ShortenUrlCommand;
 import com.velasconino.application.ports.input.UrlShortenedResponse;
 import com.velasconino.domain.HashBasedAlphanumericShortener;
 import com.velasconino.infrastructure.adapters.output.InMemoryUrlRepository;
 import org.junit.jupiter.api.Test;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
 
 import static com.velasconino.fixture.UrlFixture.aUniqueUrl;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -14,10 +19,12 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 class AlphanumericHashBasedShortenUrlUseCaseTest {
 
     private static final int INITIAL_CODE_LENGTH = 8;
+    private static final int MAX_CODE_LENGTH_INCREASE = 2;
     private static final String BASE_SHORT_URL = "https://myshortener.com/";
     
     private final InMemoryUrlRepository urlRepository = new InMemoryUrlRepository();
-    private final AlphanumericHashBasedShortenUrlUseCase useCase = new AlphanumericHashBasedShortenUrlUseCase(urlRepository, INITIAL_CODE_LENGTH, BASE_SHORT_URL);
+    private final AlphanumericHashBasedShortenUrlUseCase useCase = new AlphanumericHashBasedShortenUrlUseCase(
+        urlRepository, INITIAL_CODE_LENGTH, MAX_CODE_LENGTH_INCREASE, BASE_SHORT_URL);
 
     @Test
     void shouldShortenUrlAndReturnResponse() {
@@ -88,7 +95,7 @@ class AlphanumericHashBasedShortenUrlUseCaseTest {
         // Given
         String firstLongUrl = aUniqueUrl();
         String secondLongUrl = aUniqueUrl();
-        
+
         // First, create a short URL for the first long URL
         UrlShortenedResponse firstUrlResponse = useCase.shortenUrl(new ShortenUrlCommand(firstLongUrl));
         String initialShortCode = firstUrlResponse.shortCode();
@@ -96,7 +103,7 @@ class AlphanumericHashBasedShortenUrlUseCaseTest {
         
         // When - create a short URL for the second long URL with a collision on the first attempt
         UrlShortenedResponse secondUrlResponse = createShortUrlWithForcedCollision(
-                secondLongUrl, initialShortCode);
+                secondLongUrl, List.of(initialShortCode));
         
         // Then - verify the second short code is one character longer
         assertThat(secondUrlResponse.shortCode()).isNotEqualTo(initialShortCode);
@@ -113,6 +120,37 @@ class AlphanumericHashBasedShortenUrlUseCaseTest {
     }
 
     @Test
+    void shouldThrowUrlShorteningCollisionExceptionWhenMaxLengthIncreaseExceeded() {
+        // Given - create an initial URL and get its short code
+        String firstLongUrl = aUniqueUrl();
+        UrlShortenedResponse firstUrlResponse = useCase.shortenUrl(new ShortenUrlCommand(firstLongUrl));
+        String initialShortCode = firstUrlResponse.shortCode();
+        
+        // When - create a series of URLs that will force collisions at each length
+        // We'll create URLs that collide at each length from initial to max length
+        String currentShortCode = initialShortCode;
+        List<String> shortCodes = new ArrayList<>();
+        shortCodes.add(initialShortCode);
+        
+        // Create URLs that will collide at each length up to the maximum allowed increase
+        for (int i = 0; i < MAX_CODE_LENGTH_INCREASE; i++) {
+            currentShortCode = createShortUrlWithForcedCollision(aUniqueUrl(), shortCodes).shortCode();
+            shortCodes.add(currentShortCode);
+        }
+        
+        // Then - verify the last generated code is at the maximum allowed length
+        assertThat(currentShortCode).hasSize(INITIAL_CODE_LENGTH + MAX_CODE_LENGTH_INCREASE);
+        
+        // When - try to create another URL that would require exceeding the maximum length
+        String thirdLongUrl = aUniqueUrl();
+        
+        // Then - verify that attempting to create a URL that would exceed max length throws the expected exception
+        assertThatThrownBy(() -> createShortUrlWithForcedCollision(thirdLongUrl, shortCodes))
+            .isInstanceOf(UrlShorteningCollisionException.class)
+            .hasMessageContaining("Could not generate a unique short code within the maximum allowed length increase");
+    }
+
+    @Test
     void shouldThrowInvalidUrlExceptionWhenCommandHasInvalidUrl() {
         // Given an invalid URL
         String invalidUrl = "not-a-valid-url";
@@ -124,31 +162,47 @@ class AlphanumericHashBasedShortenUrlUseCaseTest {
     }
 
     /**
-     * Creates a short URL with a forced collision on the first attempt.
-     * This simulates the scenario where the first generated short code already exists,
-     * forcing the use case to generate a longer code.
+     * Creates a short URL by forcing collisions with existing short codes.
+     * This method simulates the scenario where the URL shortener needs to generate
+     * increasingly longer codes due to collisions with existing codes.
+     * 
+     * The method works by:
+     * 1. Creating a test implementation of the URL shortener
+     * 2. For each existing short code, generating a collision by:
+     *    - Creating a short code of the same length as the existing one
+     *    - Saving it in the repository with a slightly modified URL
+     * 3. Then delegating to the real implementation, which will detect these collisions
+     *    and generate a longer code
      *
      * @param longUrl The URL to shorten
-     * @param existingShortCode The short code that will cause a collision
+     * @param existingShortCodes List of short codes that should cause collisions
      * @return The response containing the new short code and URL
      */
-    private UrlShortenedResponse createShortUrlWithForcedCollision(String longUrl, String existingShortCode) {
-        // Create a test implementation that will generate the same short code initially
-        AlphanumericHashBasedShortenUrlUseCase collisionTestUseCase = new AlphanumericHashBasedShortenUrlUseCase(urlRepository, INITIAL_CODE_LENGTH, BASE_SHORT_URL) {
+    private UrlShortenedResponse createShortUrlWithForcedCollision(String longUrl, List<String> existingShortCodes) {
+        // Create a test implementation that will generate collisions with existing codes
+        AlphanumericHashBasedShortenUrlUseCase collisionTestUseCase = new AlphanumericHashBasedShortenUrlUseCase(
+            urlRepository, INITIAL_CODE_LENGTH, MAX_CODE_LENGTH_INCREASE, BASE_SHORT_URL) {
             @Override
             public UrlShortenedResponse shortenUrl(ShortenUrlCommand command) {
-                // Force a collision generating the short code and saving it a short code that already exists
+                // Create a shortener for the URL
                 HashBasedAlphanumericShortener shortener = new HashBasedAlphanumericShortener(command.url());
-                String shortCode = shortener.generateShortCode(existingShortCode.length());
-                // Add a parameter to the long URL to avoid collisions with the existing URL
-                var longUrlToSave = command.url() + "?param1=value1";
-                urlRepository.save(shortCode, longUrlToSave);
-                // Then delegate to the real implementation
+                
+                // For each existing short code, create a collision by generating a code of the same length
+                existingShortCodes.forEach(
+                        existingShortCode -> {
+                            String generatedShortCode = shortener.generateShortCode(existingShortCode.length());
+                            // Append a random UUID to ensure the URL is unique and different from the original
+                            var longUrlToSave = command.url() + UUID.randomUUID();
+                            urlRepository.save(generatedShortCode, longUrlToSave);
+                        }
+                );
+                // Then delegate to the real implementation, which will detect the collisions
+                // and generate a longer code
                 return super.shortenUrl(command);
             }
         };
         
-        // This should detect the collision and create a longer code
+        // This should detect the collisions and create a longer code
         return collisionTestUseCase.shortenUrl(new ShortenUrlCommand(longUrl));
     }
 } 
