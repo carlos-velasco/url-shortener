@@ -1,4 +1,4 @@
-
-
-rootProject.name="url-shortener"
+rootProject.name = 'url-shortener'
+include('app')
+include('e2e-test')
 

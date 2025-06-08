@@ -6,7 +6,7 @@ RUN addgroup -S appgroup && adduser -S appuser -G appgroup
 WORKDIR /app
 
 # Copy the JAR file
-COPY build/libs/url-shortener-*-all.jar app.jar
+COPY app/build/libs/url-shortener-*-all.jar app.jar
 
 # Set ownership
 RUN chown -R appuser:appgroup /app
