@@ -12,8 +12,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 class StandardResolveShortUrlUseCaseTest {
 
-    private InMemoryUrlRepository urlRepository = new InMemoryUrlRepository();
-    private StandardResolveShortUrlUseCase useCase = new StandardResolveShortUrlUseCase(urlRepository);
+    private final InMemoryUrlRepository urlRepository = new InMemoryUrlRepository();
+    private final StandardResolveShortUrlUseCase useCase = new StandardResolveShortUrlUseCase(urlRepository);
 
     @Test
     @DisplayName("Should return original URL when short code exists")

@@ -16,9 +16,8 @@ class AlphanumericHashBasedShortenUrlUseCaseTest {
     private static final int INITIAL_CODE_LENGTH = 8;
     private static final String BASE_SHORT_URL = "https://myshortener.com/";
     
-    private InMemoryUrlRepository urlRepository = new InMemoryUrlRepository();
-    private AlphanumericHashBasedShortenUrlUseCase useCase = new AlphanumericHashBasedShortenUrlUseCase(urlRepository, INITIAL_CODE_LENGTH, BASE_SHORT_URL);
-
+    private final InMemoryUrlRepository urlRepository = new InMemoryUrlRepository();
+    private final AlphanumericHashBasedShortenUrlUseCase useCase = new AlphanumericHashBasedShortenUrlUseCase(urlRepository, INITIAL_CODE_LENGTH, BASE_SHORT_URL);
 
     @Test
     void shouldShortenUrlAndReturnResponse() {
