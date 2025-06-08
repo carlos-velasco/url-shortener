@@ -1,5 +1,8 @@
 package com.velasconino.domain;
 
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -10,18 +13,12 @@ import java.util.Base64;
  * Uses SHA-256 hashing and Base64 encoding to create short codes consisting of
  * letters (a-z, A-Z) and numbers (0-9).
  */
+@Getter
+@RequiredArgsConstructor
 public class HashBasedAlphanumericShortener {
     private static final String ALPHANUMERIC_CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
     
     private final String url;
-
-    public HashBasedAlphanumericShortener(String url) {
-        this.url = url;
-    }
-
-    public String getUrl() {
-        return url;
-    }
 
     /**
      * Generates a short code for this URL with the specified length.
