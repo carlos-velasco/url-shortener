@@ -22,7 +22,6 @@ import jakarta.inject.Singleton;
 @Requires(classes = {RuntimeException.class, ExceptionHandler.class})
 public class UrlShortenerExceptionHandler implements ExceptionHandler<RuntimeException, HttpResponse<?>> {
 
-    @SuppressWarnings("rawtypes")
     @Override
     public HttpResponse<?> handle(HttpRequest request, RuntimeException exception) {
         if (exception instanceof EmptyUrlException) {
